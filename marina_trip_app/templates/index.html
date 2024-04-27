@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>逗子マリーナ旅行 割り勘アプリ</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">逗子マリーナ旅行 割り勘アプリ</h1>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert alert-danger" role="alert">
+                    {% for message in messages %}
+                        {{ message }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        <form method="POST">
+            <div class="form-group row">
+                <label for="member" class="col-sm-2 col-form-label">購入したメンバー:</label>
+                <div class="col-sm-10">
+                    <select id="member" name="member" class="form-control">
+                        {% for member in members %}
+                            <option value="{{ member }}">{{ member }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="amount" class="col-sm-2 col-form-label">金額（円）:</label>
+                <div class="col-sm-10">
+                    <input type="number" class="form-control" id="amount" name="amount" required>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="item" class="col-sm-2 col-form-label">品名:</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="item" name="item" required>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-10 offset-sm-2">
+                    <input type="hidden" name="action" value="add_purchase">
+                    <button type="submit" class="btn btn-primary">追加</button>
+                </div>
+            </div>
+        </form>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">メンバー</th>
+                    <th scope="col">金額（円）</th>
+                    <th scope="col">品名</th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                    <tr>
+                        <td>{{ item[0] }}</td>
+                        <td>{{ item[1] }}</td>
+                        <td>{{ item[2] }}</td>
+                        <td>
+                            <form method="POST">
+                                <input type="hidden" name="item_id" value="{{ loop.index }}">
+                                <input type="hidden" name="action" value="delete_purchase">
+                                <button type="submit" class="btn btn-danger btn-sm">削除</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <h2>割り勘結果</h2>
+        <ul>
+            {% if split_result %}
+                {% for member, amount in split_result.items() %}
+                    <li>{{ member }}: {{ "支払額" if amount < 0 else "受取額" }}{% if amount < 0 %}{{ -amount }}{% else %}{{ amount }}{% endif %} 円</li>
+                {% endfor %}
+            {% else %}
+                <li>割り勘結果がありません。</li>
+            {% endif %}
+        </ul>
+        <h2>割合変更</h2>
+        <form method="POST">
+            <div class="form-group row">
+                {% for member, ratio in split_ratios.items() %}
+                    <label for="{{ member }}" class="col-sm-2 col-form-label">{{ member }}</label>
+                    <div class="col-sm-10">
+                        <input type="number" class="form-control" id="{{ member }}" name="{{ member }}" value="{{ ratio }}" min="0" max="100" required>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-10 offset-sm-2">
+                    <input type="hidden" name="action" value="change_ratio">
+                    <button type="submit" class="btn btn-primary">変更</button>
+                </div>
+            </div>
+        </form>
+        <form method="POST">
+            <input type="hidden" name="action" value="save_data">
+            <button type="submit" class="btn btn-primary">保存</button>
+        </form>
+    </div>
+</body>
+</html>
